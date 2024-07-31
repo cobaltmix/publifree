@@ -3,9 +3,9 @@ from .models import ResearchPaper
 
 
 class ResearchPaperAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'is_published', 'created_at')
-    list_filter = ('is_published', 'created_at')
-    actions = ['publish_papers', 'unpublish_papers']
+    list_display = ("title", "author", "is_published", "created_at")
+    list_filter = ("is_published", "created_at")
+    actions = ["publish_papers", "unpublish_papers"]
 
     def publish_papers(self, request, queryset):
         queryset.update(is_published=True)
