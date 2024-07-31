@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="container">
+    <h2>View Papers</h2>
+    <form method="GET" class="my-3">
+      <input type="text" name="q" placeholder="Search for papers" class="form-control">
+      <button type="submit" class="btn btn-primary my-2">Search</button>
+    </form>
+    <ul class="list-group">
+      {% for paper in papers %}
+        <li class="list-group-item">
+          <h3>{{ paper.title }}</h3>
+          <p>{{ paper.abstract }}</p>
+          <small>
+            by
+            {% if paper.author %}
+                {{ paper.author.username }}
+            {% else %}
+                Anonymous
+            {% endif %}
+            on {{ paper.created_at }}
+          </small>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %}
