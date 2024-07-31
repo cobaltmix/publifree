@@ -5,5 +5,30 @@
     {% csrf_token %} {{ u_form.as_p }}
     <button type="submit" class="btn btn-primary">Update</button>
   </form>
+
+  <h3>Your Published Papers</h3>
+  <div class="row">
+    {% for paper in user_papers %}
+    <div class="col-md-6 mb-3">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">{{ paper.title }}</h5>
+          <p class="card-text">{{ paper.abstract }}</p>
+          <a href="{{ paper.pdf.url }}" class="btn btn-primary" download
+            >Download PDF</a
+          >
+          <form
+            method="POST"
+            action="{% url 'delete_paper' paper.pk %}"
+            style="display: inline"
+          >
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}

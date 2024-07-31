@@ -11,12 +11,15 @@ class UserRegisterForm(UserCreationForm):
         model = User
         fields = ["username", "email", "password1", "password2"]
 
-
 class ResearchPaperForm(forms.ModelForm):
     class Meta:
         model = ResearchPaper
-        fields = ["title", "abstract", "content"]
-
+        fields = ['title', 'abstract', 'pdf']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'abstract': forms.Textarea(attrs={'class': 'form-control'}),
+            'pdf': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
 
 class ProfileUpdateForm(forms.ModelForm):
     email = forms.EmailField()

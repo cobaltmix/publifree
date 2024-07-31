@@ -1,12 +1,13 @@
 from django.urls import path
-from .views import register, submit_paper, view_papers, profile
+from .views import register, submit_paper, view_papers, profile, delete_paper
 from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
-    path("register/", register, name="register"),
-    path("submit/", submit_paper, name="submit_paper"),
-    path("login/", LoginView.as_view(template_name="papers/login.html"), name="login"),
-    path("logout/", LogoutView.as_view(next_page="login"), name="logout"),
-    path("profile/", profile, name="profile"),
-    path("", view_papers, name="view_papers"),
+    path('register/', register, name='register'),
+    path('submit/', submit_paper, name='submit_paper'),
+    path('login/', LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
+    path('profile/', profile, name='profile'),
+    path('delete-paper/<int:pk>/', delete_paper, name='delete_paper'),
+    path('', view_papers, name='view_papers'),
 ]
