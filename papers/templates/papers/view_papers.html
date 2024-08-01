@@ -21,6 +21,17 @@
           <a href="{{ paper.pdf.url }}" class="btn btn-primary" download
             >Download PDF</a
           >
+
+            <small>
+              by
+              {% if paper.author %}
+                  {{ paper.author.username }}
+              {% else %}
+                  Anonymous
+              {% endif %}
+              on {{ paper.created_at }}
+            </small>
+
           {% endif %}
         </div>
       </div>
