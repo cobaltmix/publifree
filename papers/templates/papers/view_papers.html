@@ -1,48 +1,108 @@
-{% extends "base.html" %} {% block content %}
-<div class="container">
-  <h2>View Papers</h2>
-  <form method="GET" class="my-3">
-    <input
-      type="text"
-      name="q"
-      placeholder="Search for papers"
-      class="form-control"
-    />
-    <button type="submit" class="btn btn-primary my-2">Search</button>
-  </form>
-  <div class="row">
-    {% for paper in papers %}
-    <div class="col-md-6 mb-3">
-      <div class="card h-100">
-        <div class="card-body">
-          <h5 class="card-title">{{ paper.title }}</h5>
-          <p class="card-text">{{ paper.abstract }}</p>
-          {% if paper.pdf %}
-          <a href="{{ paper.pdf.url }}" class="btn btn-primary" download
-            >Download PDF</a
-          >
+{% extends "papers/base.html" %}
 
-            <small>
-              by
-              {% if paper.author %}
-                  {{ paper.author.username }}
-              {% else %}
-                  Anonymous
+{% block content %}
+  <div class="container">
+    <h2>View Papers</h2>
+    <form method="GET" class="my-3">
+      <input type="text" name="q" placeholder="Search for papers" class="form-control">
+      <button type="submit" class="btn btn-primary my-2">Search</button>
+    </form>
+    <div class="row">
+      {% for paper in papers %}
+        <div class="col-md-6 mb-3" onclick="showDetailsModal({{ paper.id }})">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title">{{ paper.title }}</h5>
+              <p class="card-text">{{ paper.abstract|truncatechars:100 }}</p>
+              <p class="card-text"><strong>Keywords:</strong> {{ paper.keywords }}</p>
+              <p class="card-text">
+                <strong>Rating:</strong> {{ paper.average_rating|floatformat:1 }}
+                <small>({{ paper.rating_count }} ratings)</small>
+              </p>
+              {% if paper.pdf %}
+                <a href="{{ paper.pdf.url }}" class="btn btn-primary" download onclick="incrementView({{ paper.id }})">Download PDF</a>
               {% endif %}
-              on {{ paper.created_at }}
-            </small>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
 
-          {% endif %}
+  <!-- Modal for displaying paper details -->
+  <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="detailsModalLabel"></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="detailsContent"></div>
+          <form id="ratingForm" onsubmit="submitRating(event)">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="rating">Rate this paper:</label>
+              <div id="ratingStars" class="rating-stars">
+                {% for i in "54321" %}
+                  <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}">
+                  <label for="star{{ i }}">&#9733;</label>
+                {% endfor %}
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Rating</button>
+          </form>
         </div>
       </div>
     </div>
-    {% endfor %}
   </div>
-</div>
+
+  <script>
+    function showDetailsModal(paperId) {
+      fetch(`/get-paper-details/${paperId}/`)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('detailsModalLabel').innerText = data.title;
+          document.getElementById('detailsContent').innerHTML = `<p>${data.abstract}</p>`;
+          const ratingForm = document.getElementById('ratingForm');
+          ratingForm.action = `/rate-paper/${paperId}/`;
+          $('#detailsModal').modal('show');
+        });
+    }
+
+    function incrementView(paperId) {
+      fetch(`/increment-view/${paperId}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+      });
+    }
+
+    function submitRating(event) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+      fetch(form.action, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          alert('Thank you for your rating!');
+          $('#detailsModal').modal('hide');
+        } else {
+          alert('Error submitting rating');
+        }
+      });
+    }
+  </script>
 {% endblock %}
-
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>

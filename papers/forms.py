@@ -15,11 +15,19 @@ class UserRegisterForm(UserCreationForm):
 class ResearchPaperForm(forms.ModelForm):
     class Meta:
         model = ResearchPaper
-        fields = ["title", "abstract", "pdf"]
+        fields = [
+            "title",
+            "abstract",
+            "pdf",
+            "keywords",
+        ]
         widgets = {
             "title": forms.TextInput(attrs={"class": "form-control"}),
             "abstract": forms.Textarea(attrs={"class": "form-control"}),
             "pdf": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "keywords": forms.TextInput(
+                attrs={"class": "form-control"}
+            ),
         }
 
 
@@ -44,4 +52,11 @@ class ContactForm(forms.Form):
     )
     content = forms.CharField(
         label="Content", widget=forms.Textarea(attrs={"class": "form-control"})
+    )
+
+class RatingForm(forms.Form):
+    rating = forms.ChoiceField(
+        choices=[(i, i) for i in range(1, 6)],
+        widget=forms.RadioSelect,
+        required=True,
     )

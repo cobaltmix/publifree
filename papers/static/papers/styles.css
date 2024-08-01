@@ -1,0 +1,58 @@
+/* General Styling */
+body {
+    padding-top: 80px;  /* Ensures content does not clip into the navbar */
+}
+
+/* Form fields */
+.form-group {
+    margin-bottom: 15px;
+}
+
+/* Buttons */
+.btn {
+    margin-top: 20px;
+}
+
+/* Dropzone styling (if used in future) */
+.dropzone {
+    border: 2px dashed #007bff;
+    border-radius: 5px;
+    background: white;
+    padding: 50px;
+    text-align: center;
+    font-size: 18px;
+    color: #007bff;
+    margin-bottom: 20px;
+}
+
+.dropzone .dz-message {
+    margin: 2em 0;
+    font-size: 24px;
+}
+
+/* Card styling for papers */
+.card {
+    margin-bottom: 20px;
+}
+
+/* Rating */
+.rating-stars {
+    direction: rtl;
+    display: inline-block;
+}
+
+.rating-stars input {
+    display: none;
+}
+
+.rating-stars label {
+    font-size: 2em;
+    color: #ddd;
+    cursor: pointer;
+}
+
+.rating-stars label:hover,
+.rating-stars label:hover ~ label,
+.rating-stars input:checked ~ label {
+    color: #f5b301;
+}

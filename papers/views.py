@@ -1,10 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import UserRegisterForm, ResearchPaperForm, ProfileUpdateForm, ContactForm
-from .models import ResearchPaper
 from django.contrib import messages
-from django.db.models import Q
+from .forms import UserRegisterForm, ResearchPaperForm, ProfileUpdateForm, ContactForm
+from .models import User, ResearchPaper
 from django.core.mail import EmailMessage
+from django.db.models import Q, Count, Sum
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 
 def register(request):
@@ -46,7 +48,9 @@ def profile(request):
     else:
         u_form = ProfileUpdateForm(instance=request.user)
 
-    user_papers = ResearchPaper.objects.filter(author=request.user, is_published=True)
+    user_papers = ResearchPaper.objects.filter(
+        author=request.user, is_published=True
+    )  # Fetch user's published papers
 
     context = {"u_form": u_form, "user_papers": user_papers}
 
@@ -59,14 +63,6 @@ def delete_paper(request, pk):
     paper.delete()
     messages.success(request, "Your paper has been deleted!")
     return redirect("profile")
-
-
-def view_papers(request):
-    query = request.GET.get("q")
-    papers = ResearchPaper.objects.filter(is_published=True)
-    if query:
-        papers = papers.filter(Q(title__icontains=query) | Q(abstract__icontains=query))
-    return render(request, "papers/view_papers.html", {"papers": papers})
 
 
 def contact(request):
@@ -91,3 +87,74 @@ def contact(request):
         form = ContactForm()
 
     return render(request, "papers/contact.html", {"form": form})
+
+
+def view_papers(request):
+    query = request.GET.get("q")
+    papers = ResearchPaper.objects.filter(is_published=True)
+    if query:
+        papers = papers.filter(
+            Q(title__icontains=query)
+            | Q(abstract__icontains=query)
+            | Q(keywords__icontains=query)
+        )
+    return render(request, "papers/view_papers.html", {"papers": papers})
+
+
+def leaderboard_papers(request):
+    leaderboard = User.objects.annotate(paper_count=Count("researchpaper")).order_by(
+        "-paper_count"
+    )
+    return render(
+        request, "papers/leaderboard_papers.html", {"leaderboard": leaderboard}
+    )
+
+
+def leaderboard_views(request):
+    leaderboard = User.objects.annotate(
+        view_count=Sum("researchpaper__views")
+    ).order_by("-view_count")
+    return render(
+        request, "papers/leaderboard_views.html", {"leaderboard": leaderboard}
+    )
+
+
+@csrf_exempt
+def increment_view(request, pk):
+    paper = get_object_or_404(ResearchPaper, pk=pk)
+    paper.views += 1
+    paper.save()
+    return JsonResponse({"status": "success"})
+
+
+def get_paper_details(request, pk):
+    paper = get_object_or_404(ResearchPaper, pk=pk)
+    return JsonResponse(
+        {
+            "title": paper.title,
+            "abstract": paper.abstract,
+            "average_rating": paper.average_rating,
+            "rating_count": paper.rating_count,
+        }
+    )
+
+
+@csrf_exempt
+def increment_view(request, pk):
+    paper = get_object_or_404(ResearchPaper, pk=pk)
+    paper.views += 1
+    paper.save()
+    return JsonResponse({"status": "success"})
+
+
+@csrf_exempt
+def rate_paper(request, pk):
+    if request.method == "POST":
+        paper = get_object_or_404(ResearchPaper, pk=pk)
+        rating = int(request.POST.get("rating", 0))
+        if 1 <= rating <= 5:
+            paper.total_ratings += 1
+            paper.rating_sum += rating
+            paper.save()
+            return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error"})
